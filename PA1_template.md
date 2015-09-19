@@ -3,23 +3,30 @@
 
 ## Loading and preprocessing the data
 
+1. Load the data
 
 ```r
-# Load and trasform the data
 unzip("activity.zip")
 activity_data <- read.csv("activity.csv")
+```
+2. Process/transform the data (if necessary) into a format suitable for your analysis
+
+```r
 activity_data$date <- as.Date(activity_data$date, format="%Y-%m-%d")
 ```
 ## What is mean total number of steps taken per day?
 
+1. Calculate the total number of steps taken per day
+
 ```r
-# Calculate the total number of steps taken per day
 steps_per_day <- aggregate(steps~date, activity_data, sum)
 library(ggplot2)
 qplot(steps_per_day$steps) + xlab("number of steps per day")
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-2-1.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
+
+2. Calculate and report the mean and median of the total number of steps taken per day
 
 ```r
 mean(steps_per_day$steps)
@@ -38,24 +45,27 @@ median(steps_per_day$steps)
 ```
 
 ## What is the average daily activity pattern?
+1. Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 
 ```r
 average_daily_activity <- aggregate(steps~interval, activity_data, mean)
 ggplot(average_daily_activity, aes(x=interval, y=steps)) + geom_line()
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png) 
+
+2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 
 ```r
-max(average_daily_activity$steps)
+average_daily_activity$interval[average_daily_activity$steps == max(average_daily_activity$steps)]
 ```
 
 ```
-## [1] 206.1698
+## [1] 835
 ```
-
 
 ## Imputing missing values
+1. Calculate and report the total number of missing values in the dataset.
 
 ```r
 sum(is.na(activity_data))
@@ -64,6 +74,9 @@ sum(is.na(activity_data))
 ```
 ## [1] 2304
 ```
+
+2. Devise a strategy for filling in all of the missing values in the dataset. I used the  mean for that 5-minute interval.
+3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
 
 ```r
 new_activity_data <- activity_data
@@ -81,17 +94,38 @@ f <- function(x){
 new_activity_data$steps <- apply(new_activity_data, 1, f)
 
 new_steps_per_day <- aggregate(steps~date, new_activity_data, sum)
-
-#compare_data <- cbind(steps_per_day, new_steps_per_day$steps)
-b <- merge(new_steps_per_day, steps_per_day, by="date", all=T)
-
-g <- ggplot(b)
-g <- g + geom_histogram(aes(steps.y), alpha=0, colour="red")
-g <- g + geom_histogram(aes(steps.x), fill="skyblue", alpha=0.5)
-print(g)
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
+4. Make a histogram of the total number of steps taken each day 
+
+```r
+steps_per_day$dataset <- factor("original")
+new_steps_per_day$dataset <- factor("impute")
+
+hist_data <- rbind(new_steps_per_day, steps_per_day)
+
+ggplot(hist_data, aes(x=steps, fill=dataset)) + geom_histogram(alpha=0.3, position="identity")
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-9-1.png) 
+
+and Calculate and report the mean and median total number of steps taken per day. 
+
+```r
+mean(new_steps_per_day$steps)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
+median(new_steps_per_day$steps)
+```
+
+```
+## [1] 10766.19
+```
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
@@ -104,14 +138,21 @@ Sys.setlocale("LC_TIME", "C")
 ```
 ## [1] "C"
 ```
+1. Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
+
 
 ```r
 a <- new_activity_data
-a$weekday <- as.factor(weekdays(activity_data$date))
+a$weekday <- as.factor(weekdays(a$date))
 a$type <- as.factor(ifelse(a$weekday == "Saturday" |
                                a$weekday == "Sunday", "weekend", "weekday"))
+```
+2. Make a panel plot containing a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). 
+
+
+```r
 b <- aggregate(steps~interval+type, a, mean)
 ggplot(b, aes(x=interval, y=steps, group=type, colour=type)) + geom_line() + facet_wrap(~type, nrow=2)
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-5-1.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-13-1.png) 
