@@ -20,7 +20,7 @@ activity_data$date <- as.Date(activity_data$date, format="%Y-%m-%d")
 ## What is mean total number of steps taken per day?
 
 1. Calculate the total number of steps taken per day
-```{r fig.height=4}
+```{r}
 steps_per_day <- aggregate(steps~date, activity_data, sum)
 library(ggplot2)
 qplot(steps_per_day$steps) + xlab("number of steps per day")
@@ -33,8 +33,8 @@ median(steps_per_day$steps)
 ```
 
 ## What is the average daily activity pattern?
-1. Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
-```{r fig.height=4}
+1. Make a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+```{r}
 average_daily_activity <- aggregate(steps~interval, activity_data, mean)
 ggplot(average_daily_activity, aes(x=interval, y=steps)) + geom_line()
 
